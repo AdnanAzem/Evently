@@ -1,7 +1,12 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config(); 
+
+const generateToken = (userId) => {
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  };
 
 const authMiddleware = (req, res, next) => {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = generateToken(user.id);
     if (!token) {
         return res.status(401).json({ message: 'No token, authorization denied' });
     }
