@@ -41,3 +41,31 @@ searchBtn.addEventListener('click', () => {
 
 // Initialize: Fetch all events on page load
 fetchEvents();
+
+// Modal Handling
+const loginModal = document.getElementById('loginModal');
+const signupModal = document.getElementById('signupModal');
+
+loginBtn.addEventListener('click', () => {
+    loginModal.style.display = 'block';
+});
+
+signupBtn.addEventListener('click', () => {
+    signupModal.style.display = 'block';
+});
+
+// Close modals when clicking 'X'
+document.querySelectorAll('.close').forEach(btn => {
+    btn.addEventListener('click', () => {
+        loginModal.style.display = 'none';
+        signupModal.style.display = 'none';
+    });
+});
+
+// Close modals when clicking outside
+window.addEventListener('click', (e) => {
+    if (e.target === loginModal || e.target === signupModal) {
+        loginModal.style.display = 'none';
+        signupModal.style.display = 'none';
+    }
+});
