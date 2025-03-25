@@ -1,0 +1,89 @@
+<%- include('partials/header') %>
+
+<div id="plans">
+    <% if (plans.length > 0) { %>
+        <% plans.forEach(plan => { %>
+            <div class="plan">
+                <h2><%= plan.destination %></h2>
+                <p><strong>Start Date:</strong> <%= plan.start_date %></p>
+                <p><strong>End Date:</strong> <%= plan.end_date %></p>
+                <p><strong>Weather:</strong> <%= plan.weather_data.description %>, <%= plan.weather_data.temperature %>°C</p>
+
+                <h3>Activities</h3>
+                <ul>
+                    <% plan.activities.forEach(activity => { %>
+                        <li>
+                            <strong><%= activity.name %></strong><br>
+                            <%= activity.location %>
+                        </li>
+                    <% }); %>
+                </ul>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <p>No travel plans found.</p>
+    <% } %>
+</div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Retrieve the token from localStorage
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('You are not logged in. Please log in first.');
+                window.location.href = '/login'; // Redirect to login page
+                return;
+            }
+            console.log('Token retrieved:', token); // Debugging log
+
+            // Fetch travel plans with the token
+            const response = await fetch('/api/travel/plans', {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`, // Include the token
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch travel plans. Please try again.');
+            }
+
+            const data = await response.json();
+            if (data.message === 'Travel plans fetched successfully') {
+                const plansDiv = document.getElementById('plans');
+                if (data.plans.length > 0) {
+                    plansDiv.innerHTML = data.plans.map(plan => `
+                        <div class="plan">
+                            <h2>${plan.destination}</h2>
+                            <p><strong>Start Date:</strong> ${plan.start_date}</p>
+                            <p><strong>End Date:</strong> ${plan.end_date}</p>
+                            <p><strong>Weather:</strong> ${plan.weather_data.description}, ${plan.weather_data.temperature}°C</p>
+
+                            <h3>Activities</h3>
+                            <ul>
+                                ${plan.activities.map(activity => `
+                                    <li>
+                                        <strong>${activity.name}</strong><br>
+                                        ${activity.location}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `).join('');
+                } else {
+                    plansDiv.innerHTML = '<p>No travel plans found.</p>';
+                }
+            } else {
+                alert(data.message || 'Failed to fetch travel plans. Please try again.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('An error occurred while fetching travel plans. Please try again.');
+        }
+    });
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,60 @@
+<%- include('partials/header') %>
+
+<main>
+    <h1>Plan Your Trip</h1>
+    <form id="search-form">
+        <label for="city">Destination:</label>
+        <input type="text" id="city" name="city" placeholder="Enter a city" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="results">
+        <!-- Weather and activity results will be displayed here -->
+    </div>
+</main>
+
+<script>
+    console.log('localStorage Token:', localStorage.getItem('token'));
+    document.getElementById('search-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const city = document.getElementById('city').value;
+        
+        try {
+            const response = await fetch(`/api/travel/search`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ city }),
+            });
+            const data = await response.json();
+
+            if (data.message === 'Destination data fetched successfully') {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = `
+                    <h2>Weather in ${city}</h2>
+                    <p>${data.weather.weather[0].description}, ${data.weather.main.temp}°C</p>
+
+                    <h2>Activities in ${city}</h2>
+                    <ul>
+                        ${data.activities.map(activity => `
+                            <li>
+                                <strong>${activity.name}</strong><br>
+                                ${activity.location?.address || 'Location not provided'}
+                            </li>
+                        `).join('')}
+                    </ul>
+
+                    <a href="/save-plan?city=${encodeURIComponent(city)}&weather=${encodeURIComponent(JSON.stringify(data.weather))}&activities=${encodeURIComponent(JSON.stringify(data.activities))}">
+                        Save This Plan
+                    </a>
+                `;
+            } else {
+                alert('Failed to fetch data. Please try again.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('An error occurred. Please try again.');
+        }
+    });
+</script>
+
+<%- include('partials/footer') %>
