@@ -2,9 +2,18 @@ const pool = require('../config/db');
 
 // Helper function to parse the malformed activities string
 const parseActivities = (activitiesString) => {
+    console.log('Input activitiesString:', activitiesString); // Debugging log
+    console.log('Type of activitiesString:', typeof activitiesString); // Debugging log
+
     if (!activitiesString) return []; // Return an empty array if activitiesString is null or undefined
 
-    // Example input: "{\"(1,1,\\\"Baha'i Gardens (הגנים הבהאים)\\\",\\\"No description available\\\",\\\"45 Yefe Nof St\\\")\",\"(2,1,...)}"
+    // Ensure activitiesString is a string before processing
+    if (typeof activitiesString !== 'string') {
+        console.error('Invalid activitiesString type:', typeof activitiesString);
+        return [];
+    }
+
+    // Example input: "{\"(1,1,\\\"Baha'i Gardens (הגנים הבהאים)\\\",\\\"No description available\\\",\\\"45 Yefe Nof St\\\")\",\"(2,1,...)}\"
     const activitiesArray = activitiesString
         .replace(/^\{|\}$/g, '') // Remove the outer curly braces
         .split(',') // Split by commas to separate individual activities
@@ -18,7 +27,6 @@ const parseActivities = (activitiesString) => {
         })
         .filter(Boolean); // Filter out any null values
 
-        // console.log('Parsed activities:', activitiesArray); // Debugging log
     return activitiesArray;
 };
 
@@ -57,22 +65,39 @@ const saveTravelPlan = async (userId, destination, startDate, endDate, weatherDa
 };
 
 // Get all travel plans for a user
+// Get all travel plans for a user
+// Get all travel plans for a user
 const getTravelPlansByUser = async (userId) => {
     try {
         const query = `
-            SELECT tp.*, array_agg(a.*) AS activities
-            FROM travel_plans tp
-            LEFT JOIN activities a ON tp.id = a.plan_id
-            WHERE tp.user_id = $1
-            GROUP BY tp.id
+            SELECT *
+            FROM travel_plans
+            WHERE user_id = $1
         `;
         const result = await pool.query(query, [userId]);
 
         // Transform the fetched data
-        return result.rows.map(plan => ({
-            ...plan,
-            activities: parseActivities(plan.activities), // Parse the activities field
-        }));
+        return result.rows.map(plan => {
+            let activities = plan.activities;
+
+            // If activities is a string, parse it
+            if (typeof activities === 'string') {
+                activities = parseActivities(activities);
+            }
+            // If activities is already an array, use it directly
+            else if (Array.isArray(activities)) {
+                activities = activities;
+            }
+            // If activities is invalid, default to an empty array
+            else {
+                activities = [];
+            }
+
+            return {
+                ...plan,
+                activities,
+            };
+        });
     } catch (error) {
         throw error;
     }

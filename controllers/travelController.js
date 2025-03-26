@@ -34,34 +34,24 @@ const saveTravelPlanHandler = async (req, res) => {
 
         // console.log('Saving plan for userId:', userId); // Debugging log
 
-        // Save the travel plan
+        // Save the travel plan with activities as JSON
         const planQuery = `
-            INSERT INTO travel_plans (user_id, destination, start_date, end_date, weather_data)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO travel_plans (user_id, destination, start_date, end_date, weather_data, activities)
+            VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id
         `;
-        const planValues = [userId, destination, startDate, endDate, weatherData];
+        const planValues = [
+            userId,
+            destination,
+            startDate,
+            endDate,
+            weatherData,
+            JSON.stringify(activities), // Convert activities array to JSON string
+        ];
         const planResult = await pool.query(planQuery, planValues);
         const planId = planResult.rows[0].id;
 
         // console.log('Inserted planId:', planId); // Debugging log
-
-        // Save associated activities
-        if (Array.isArray(activities) && activities.length > 0) {
-            for (const activity of activities) {
-                const activityQuery = `
-                    INSERT INTO activities (plan_id, name, description, location)
-                    VALUES ($1, $2, $3, $4)
-                `;
-                const activityValues = [
-                    planId,
-                    activity.name,
-                    activity.description || 'No description available', // Default value if description is missing
-                    activity.location?.address || 'Location not provided',
-                ];
-                await pool.query(activityQuery, activityValues);
-            }
-        }
 
         res.status(201).json({
             message: 'Travel plan saved successfully',
