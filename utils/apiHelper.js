@@ -47,7 +47,7 @@ const fetchActivitySuggestions = async (location) => {
         });
 
         const data = await response.json();
-        console.log('Foursquare API response:', data); // Debugging log
+        // console.log('Foursquare API response:', data); // Debugging log
 
         return data.results.map(place => ({
             name: place.name,

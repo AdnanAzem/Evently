@@ -17,8 +17,8 @@
                         <% if (Array.isArray(plan.activities) && plan.activities.length > 0) { %>
                             <% plan.activities.forEach(activity => { %>
                                 <li>
-                                    <strong><%= activity.name %></strong>
-                                    
+                                    <strong><%= activity.name %></strong><br>
+                                    <%= activity.location?.address || 'Location not provided' %>
                                 </li>
                             <% }); %>
                         <% } else { %>
