@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { createUser, findUserByEmail } = require('../models/userModel');
 require('dotenv').config();
+const cookieParser = require('cookie-parser');
+
 
 // Register a new user
 const registerUser = async (req, res) => {
@@ -43,6 +45,7 @@ const loginUser = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
+        res.cookie('token', token, { httpOnly: true });
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
         console.error(error);

@@ -1,5 +1,27 @@
 const pool = require('../config/db');
 
+// Helper function to parse the malformed activities string
+const parseActivities = (activitiesString) => {
+    if (!activitiesString) return []; // Return an empty array if activitiesString is null or undefined
+
+    // Example input: "{\"(1,1,\\\"Baha'i Gardens (הגנים הבהאים)\\\",\\\"No description available\\\",\\\"45 Yefe Nof St\\\")\",\"(2,1,...)}"
+    const activitiesArray = activitiesString
+        .replace(/^\{|\}$/g, '') // Remove the outer curly braces
+        .split(',') // Split by commas to separate individual activities
+        .map(activity => {
+            // Extract the fields from the activity string
+            const match = activity.match(/\((\d+),(\d+),"([^"]+)","([^"]+)","([^"]+)"\)/);
+            if (!match) return null; // Skip invalid activity strings
+
+            const [, id, planId, name, description, location] = match;
+            return { id, planId, name, description, location };
+        })
+        .filter(Boolean); // Filter out any null values
+
+        // console.log('Parsed activities:', activitiesArray); // Debugging log
+    return activitiesArray;
+};
+
 // Save a new travel plan
 const saveTravelPlan = async (userId, destination, startDate, endDate, weatherData, activities) => {
     try {
@@ -45,7 +67,12 @@ const getTravelPlansByUser = async (userId) => {
             GROUP BY tp.id
         `;
         const result = await pool.query(query, [userId]);
-        return result.rows;
+
+        // Transform the fetched data
+        return result.rows.map(plan => ({
+            ...plan,
+            activities: parseActivities(plan.activities), // Parse the activities field
+        }));
     } catch (error) {
         throw error;
     }

@@ -37,6 +37,29 @@ const fetchActivitySuggestions = async (location) => {
     }
 };
 
+ const getActivitiesForCity = async (city) => {
+    try {
+        const response = await fetch(`https://api.foursquare.com/v3/places/search?near=${city}&limit=5`, {
+            method: 'GET',
+            headers: {
+                Authorization: process.env.FOURSQUARE_API_KEY,
+            },
+        });
+
+        const data = await response.json();
+        console.log('Foursquare API response:', data); // Debugging log
+
+        return data.results.map(place => ({
+            name: place.name,
+            description: place.description || 'No description available', // Default value if description is missing
+            location: place.location,
+        }));
+    } catch (error) {
+        console.error(error);
+        throw new Error('Failed to fetch activities');
+    }
+};
 
 
-module.exports = { fetchWeatherData, fetchActivitySuggestions };
+
+module.exports = { fetchWeatherData, fetchActivitySuggestions , getActivitiesForCity};

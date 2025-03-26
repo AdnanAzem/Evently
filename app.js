@@ -7,6 +7,8 @@ const authRoutes = require('./routes/authRoutes');
 const authenticate = require('./middleware/authMiddleware'); // Import the middleware
 const pool = require('./config/db'); // Import the database connection
 const { getTravelPlansByUser } = require('./models/travelModel');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +20,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
+app.use(bodyParser.json());
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
@@ -48,9 +52,10 @@ app.get('/dashboard', authenticate, async (req, res) => {
     
     try {
         const userId = req.user.userId; // Access the userId from the authenticated user
-        console.log('Fetching plans for userId:', userId); // Debugging log
+        // console.log('Fetching plans for userId:', userId);
 
         const plans = await getTravelPlansByUser(userId);
+        // console.log('Transformed plans:', JSON.stringify(plans, null, 2)); // Debugging log
 
         res.render('dashboard', { plans });
     } catch (error) {
@@ -62,5 +67,5 @@ app.get('/dashboard', authenticate, async (req, res) => {
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}/login`);
 });
